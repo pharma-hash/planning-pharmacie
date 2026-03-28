@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Grande Pharmacie de Villeurbanne</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+/* ── LOGIN ───────────────────────────────────────────────────────── */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 54px);padding:20px;}
+.login-card{background:var(--surf);border-radius:var(--r16);padding:32px;width:360px;max-width:100%;border:1px solid var(--bdr);box-shadow:var(--sh4);}
+.login-logo{width:52px;height:52px;background:linear-gradient(135deg,var(--g1),var(--g2));border-radius:var(--r12);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 20px;}
+.login-card h2{font-size:18px;font-weight:700;text-align:center;margin-bottom:4px;}
+.login-card p{font-size:13px;color:var(--n5);text-align:center;margin-bottom:24px;}
+.lerr{color:var(--r2);font-size:12px;margin-top:8px;display:none;font-weight:500;text-align:center;}
+
+/* ── ADMIN LAYOUT ────────────────────────────────────────────────── */
+.a-layout{display:grid;grid-template-columns:220px 1fr;gap:14px;align-items:start;}
+
+/* ── CALENDAR ────────────────────────────────────────────────────── */
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cdh{font-size:10px;color:var(--n6);text-align:center;padding:5px 2px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.cday{
+  background:var(--surf2);border-radius:var(--r6);min-height:62px;
+  padding:4px;cursor:pointer;border:1.5px solid transparent;
+  transition:all .15s;
+}
+.cday:hover:not(.cd-other):not(.cd-dim):not(.cd-ferie){border-color:var(--g3);background:var(--surf);}
+.cday.cd-today{border-color:var(--b2);background:#eff6ff;}
+.cday.cd-other{opacity:.2;cursor:default;pointer-events:none;}
+.cday.cd-ferie{background:var(--pl);opacity:.6;cursor:default;pointer-events:none;}
+.cday.cd-dim{opacity:.2;cursor:default;pointer-events:none;}
+.cdn{font-size:11px;color:var(--n4);font-weight:600;margin-bottom:2px;line-height:1;}
+.cdn.cdt{background:var(--b2);color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.cchip{font-size:8px;padding:1px 4px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;display:block;}
+
+/* ── DAY DETAIL ──────────────────────────────────────────────────── */
+.day-detail{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r10);padding:14px;margin-bottom:12px;box-shadow:var(--sh2);}
+.day-detail h3{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--n1);}
+.pres-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.pres-chip{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:var(--r8);background:var(--surf2);font-size:12px;font-weight:500;}
+.pres-chip.leave{background:var(--rl);color:var(--r1);}
+.pres-chip.int{background:var(--ol);color:var(--o1);}
+
+/* ── TEAM LIST ───────────────────────────────────────────────────── */
+.titem{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r8);cursor:pointer;transition:background .15s;}
+.titem:hover,.titem.sel{background:var(--surf2);}
+.titem.sel{background:var(--gl);outline:1.5px solid var(--gm);}
+.tn{font-size:12px;font-weight:600;line-height:1.3;}
+.ts{font-size:10px;color:var(--n6);}
+
+/* ── POINTAGE ────────────────────────────────────────────────────── */
+.pt-tbl{width:100%;border-collapse:collapse;min-width:500px;}
+.pt-tbl th{font-size:10px;color:var(--n5);font-weight:700;padding:9px 10px;text-align:left;border-bottom:1.5px solid var(--bdr);background:var(--surf2);text-transform:uppercase;letter-spacing:.05em;}
+.pt-tbl td{font-size:12px;padding:9px 10px;border-bottom:1px solid var(--bdr);vertical-align:middle;}
+.pt-tbl tr:last-child td{border-bottom:none;}
+.pt-tbl tr:hover td{background:var(--surf2);}
+.c-arr{color:var(--g1);font-weight:700;font-family:var(--ffm);}
+.c-dep{color:var(--b1);font-weight:700;font-family:var(--ffm);}
+.c-nil{color:var(--n6);font-style:italic;}
+.c-late{color:var(--r2);font-weight:700;font-family:var(--ffm);}
+.c-dur{font-weight:700;font-family:var(--ffm);color:var(--n2);}
+
+/* ── DEMANDES ────────────────────────────────────────────────────── */
+.rcard{background:var(--surf2);border-radius:var(--r10);padding:12px;display:flex;align-items:center;gap:10px;margin-bottom:8px;border:1px solid var(--bdr);}
+.ri{flex:1;min-width:0;}
+.rn{font-size:13px;font-weight:600;}
+.rd{font-size:12px;color:var(--n5);margin-top:2px;}
+.rb-ok{font-size:12px;padding:5px 11px;border-radius:var(--r6);border:1px solid var(--g3);color:var(--g1);background:none;cursor:pointer;font-family:var(--ff);font-weight:600;transition:all .15s;}
+.rb-ok:hover{background:var(--gl);}
+.rb-no{font-size:12px;padding:5px 11px;border-radius:var(--r6);border:1px solid var(--r2);color:var(--r1);background:none;cursor:pointer;font-family:var(--ff);font-weight:600;transition:all .15s;}
+.rb-no:hover{background:var(--rl);}
+
+/* ── CONFIG ──────────────────────────────────────────────────────── */
+.cfg-block{background:var(--surf2);border-radius:var(--r10);padding:14px;margin-bottom:12px;border:1px solid var(--bdr);}
+.cfg-block h4{font-size:13px;font-weight:600;margin-bottom:8px;}
+.cfg-block p{font-size:12px;color:var(--n5);line-height:1.5;}
+.firebase-ok{display:flex;align-items:center;gap:8px;background:var(--gl);border:1px solid var(--gm);border-radius:var(--r8);padding:10px 14px;font-size:12px;color:var(--g0);font-weight:500;margin-bottom:14px;}
+.int-sec{background:var(--ol);border:1px solid #fed7aa;border-radius:var(--r8);padding:13px;margin-bottom:13px;}
+.int-sec .sec-title{color:var(--o1);}
+
+/* ── PAGE HEADER ─────────────────────────────────────────────────── */
+.page-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.page-hd h2{font-size:16px;font-weight:700;letter-spacing:-.01em;}
+
+@media(max-width:860px){.a-layout{grid-template-columns:1fr;}}
+@media(max-width:640px){.pt-tbl{min-width:380px;}}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="cross">✚</div>
+    <span class="name">Grande Pharmacie de Villeurbanne</span>
+  </div>
+  <div class="hdr-right">
+    <span class="hpill">Admin</span>
+    <span class="sync-dot" id="sync-dot" title="Connexion..."></span>
+    <button class="hbtn" id="btn-logout" onclick="logout()" style="display:none;">Déconnexion</button>
+    <a href="index.html" class="hbtn">← Accueil</a>
+  </div>
+</header>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-card fade-up">
+    <div class="login-logo">⚙️</div>
+    <h2>Espace Admin</h2>
+    <p>Accès réservé au responsable</p>
+    <div class="fg">
+      <label>Mot de passe</label>
+      <input type="password" id="pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-grn" style="width:100%;" onclick="doLogin()">Se connecter →</button>
+    <p class="lerr" id="pw-err">Mot de passe incorrect</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
+  <div class="page">
+    <div class="page-hd">
+      <div>
+        <h2>Gestion du planning</h2>
+      </div>
+      <div class="nav-row">
+        <button class="nav-btn" onclick="chM(-1)">‹</button>
+        <span class="nav-lbl" id="mlbl"></span>
+        <button class="nav-btn" onclick="chM(1)">›</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" onclick="setTab('planning',0)">📅 Planning</button>
+      <button class="tab" onclick="setTab('pointage',1)">⏱ Pointages</button>
+      <button class="tab" onclick="setTab('requests',2)">📋 Demandes <span class="nbadge" id="req-nb" style="display:none;"></span></button>
+      <button class="tab" onclick="setTab('paie',3)">💶 Paie du mois</button>
+      <button class="tab" onclick="setTab('config',4)">⚙ Paramètres</button>
+    </div>
+
+    <!-- PLANNING -->
+    <div id="t-planning">
+      <div class="day-detail" id="day-detail" style="display:none;"></div>
+      <div class="a-layout">
+        <div>
+          <div class="card card-b" style="margin-bottom:10px;">
+            <div class="sec-title" style="margin-bottom:10px;">Équipe</div>
+            <div id="tlist"></div>
+          </div>
+          <div class="card card-b">
+            <div class="sec-title" style="margin-bottom:8px;">Légende</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+              <span class="chip c-ph">Pharmacien·ne</span>
+              <span class="chip c-pr">Préparateur·rice</span>
+              <span class="chip c-alt">Alternant·e</span>
+              <span class="chip c-int">Intérimaire</span>
+              <span class="chip c-cg">Congé</span>
+              <span class="chip c-gd">Garde</span>
+            </div>
+          </div>
+        </div>
+        <div class="card card-b">
+          <div class="cgrid" id="cal"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POINTAGES -->
+    <div id="t-pointage" style="display:none;">
+      <div class="card card-b">
+        <div style="background:var(--gl);border:1px solid var(--gm);border-radius:var(--r8);padding:10px 13px;font-size:12px;color:var(--g0);margin-bottom:14px;font-weight:500;">
+          ⏱ <strong>Arrondi 30 min :</strong> 0–14 min → :00 · 15–44 min → :30 · 45–59 min → :00 h suivante
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+          <div class="fg" style="margin:0;">
+            <label>Date</label>
+            <input type="date" id="ptdate" onchange="renderPt()">
+          </div>
+          <button class="btn btn-out btn-sm" onclick="exportCsv()">⬇ Export CSV</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="pt-tbl" id="pttbl"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEMANDES -->
+    <div id="t-requests" style="display:none;">
+      <div class="card card-b">
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px;">Demandes des employé·es</div>
+        <div id="rlist"></div>
+      </div>
+    </div>
+
+    <!-- PAIE -->
+    <div id="t-paie" style="display:none;">
+      <div class="card card-b">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+          <div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:2px;">💶 Récapitulatif mensuel pour la paie</div>
+            <div style="font-size:12px;color:var(--n5);">Heures réellement pointées par employé·e</div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;">
+            <div class="fg" style="margin:0;">
+              <label>Mois</label>
+              <select id="paie-month" onchange="renderPaie()">
+                <option value="0">Janvier</option><option value="1">Février</option>
+                <option value="2">Mars</option><option value="3">Avril</option>
+                <option value="4">Mai</option><option value="5">Juin</option>
+                <option value="6">Juillet</option><option value="7">Août</option>
+                <option value="8">Septembre</option><option value="9">Octobre</option>
+                <option value="10">Novembre</option><option value="11">Décembre</option>
+              </select>
+            </div>
+            <div class="fg" style="margin:0;">
+              <label>Année</label>
+              <input type="number" id="paie-year" value="2026" min="2024" max="2030" style="width:90px;" onchange="renderPaie()">
+            </div>
+            <button class="btn btn-grn btn-sm" onclick="exportPaieCsv()">⬇ Export CSV paie</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="pt-tbl" id="paie-tbl"></table>
+        </div>
+        <div id="paie-total" style="margin-top:12px;padding:12px;background:var(--surf2);border-radius:var(--r8);font-size:12px;color:var(--n4);"></div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div id="t-config" style="display:none;">
+      <div class="firebase-ok">
+        <span style="font-size:16px;">🔥</span>
+        <span><strong>Firebase Firestore actif</strong> — données synchronisées en temps réel sur tous les appareils</span>
+      </div>
+      <div class="card card-b">
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px;">⚙ Paramètres</div>
+        <div class="fg">
+          <label>Samedi alternant — semaine de référence</label>
+          <select id="cfg-sam" onchange="saveSam()">
+            <option value="0">Semaines paires = 1er groupe (Bennoui, Tounekti, Badet)</option>
+            <option value="1">Semaines impaires = 1er groupe (Bennoui, Tounekti, Badet)</option>
+          </select>
+        </div>
+        <div class="divider"></div>
+        <div class="sec-title" style="margin-bottom:10px;">Sauvegarder / Restaurer</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-out btn-sm" onclick="exportAll()">⬇ Exporter JSON</button>
+          <button class="btn btn-out btn-sm" onclick="importAll()">⬆ Importer JSON</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none;" onchange="doImport(this)">
+        <p style="font-size:12px;color:var(--n5);margin-top:8px;">💡 Pour migrer les données entre appareils : exportez puis importez.</p>
+        <div style="margin-top:14px;background:var(--surf2);border-radius:var(--r8);padding:10px;font-size:11px;color:var(--n5);font-family:var(--ffm);">
+          Projet : pharmacie-villeurbanne · Firestore · europe-west
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CRÉNEAU -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3 id="m-title">Modifier le créneau</h3>
+      <button class="modal-close" onclick="closeM()">✕</button>
+    </div>
+
+    <!-- Intérimaire -->
+    <div class="int-sec">
+      <div class="sec-title">➕ Ajouter un intérimaire</div>
+      <div class="f2" style="margin-bottom:8px;">
+        <div class="fg" style="margin:0;"><label>Prénom Nom</label><input type="text" id="int-name" placeholder="Jean Dupont"></div>
+        <div class="fg" style="margin:0;"><label>Horaires</label>
+          <div style="display:flex;gap:4px;"><input type="time" id="int-s" value="09:00" style="flex:1;"><input type="time" id="int-e" value="18:00" style="flex:1;"></div>
+        </div>
+      </div>
+      <button class="btn btn-sm" style="background:var(--o2);color:#fff;border-color:var(--o2);" onclick="saveInt()">Ajouter l'intérimaire</button>
+    </div>
+
+    <!-- Employé -->
+    <div class="fg"><label>Employé·e</label><select id="m-emp"></select></div>
+    <div class="fg"><label>Type de créneau</label>
+      <select id="m-type" onchange="toggleH()">
+        <option value="work">Travail</option>
+        <option value="conge">Congé</option>
+        <option value="garde">Garde</option>
+        <option value="absent">Absence</option>
+      </select>
+    </div>
+    <div id="m-hours" class="f2">
+      <div class="fg"><label>Début</label><input type="time" id="m-s" value="08:30"></div>
+      <div class="fg"><label>Fin</label><input type="time" id="m-e" value="19:30"></div>
+    </div>
+    <div class="modal-act">
+      <button class="btn btn-out btn-sm" onclick="closeM()">Annuler</button>
+      <button class="btn btn-grn btn-sm" onclick="saveShift()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+const ADM_PW='Pharma2026';
+let amo=new Date().getMonth(),ayo=new Date().getFullYear(),selEmp=null,selDay=null,selDate=null;
+
+const MO_ADM=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const DS_ADM=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+const DF_ADM=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+
+function doLogin(){
+  if(document.getElementById('pw').value===ADM_PW){
+    document.getElementById('login-wrap').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('btn-logout').style.display='inline-flex';
+    document.getElementById('pw-err').style.display='none';
+    dbLoad().then(()=>renderAdmin());
+    onDbChange(()=>renderAdmin());
+  }else{
+    document.getElementById('pw-err').style.display='block';
+    document.getElementById('pw').value='';
+  }
+}
+function logout(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-wrap').style.display='flex';
+  document.getElementById('btn-logout').style.display='none';
+  document.getElementById('pw').value='';
+}
+
+function setTab(name,idx){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',i===idx));
+  ['planning','pointage','requests','paie','config'].forEach(n=>{
+    const el=document.getElementById('t-'+n);if(el)el.style.display=n===name?'block':'none';
+  });
+  if(name==='pointage'){const f=document.getElementById('ptdate');if(!f.value)f.value=fi(new Date());renderPt();}
+  if(name==='requests')renderReqs();
+  if(name==='paie')renderPaie();
+  if(name==='config'){document.getElementById('cfg-sam').value=db().samSem||0;}
+}
+
+function chM(d){amo+=d;if(amo>11){amo=0;ayo++;}if(amo<0){amo=11;ayo--;}renderAdmin();}
+
+function renderAdmin(){
+  document.getElementById('mlbl').textContent=MO_ADM[amo]+' '+ayo;
+  renderTList();renderCal();
+  const nb=(db().requests||[]).filter(r=>r.status==='pending').length;
+  const el=document.getElementById('req-nb');
+  el.style.display=nb>0?'inline-flex':'none';el.textContent=nb;
+}
+
+function renderTList(){
+  const l=document.getElementById('tlist');l.innerHTML='';
+  TEAM.forEach(e=>{
+    const d=document.createElement('div');
+    d.className='titem'+(selEmp===e.id?' sel':'');
+    d.onclick=()=>{selEmp=selEmp===e.id?null:e.id;renderTList();renderCal();};
+    d.innerHTML=`<div class="av" style="background:${e.bg};color:${e.color};width:26px;height:26px;font-size:9px;">${e.sh}</div>
+      <div><div class="tn">${e.name}</div><div class="ts">${e.label}</div></div>`;
+    l.appendChild(d);
+  });
+}
+
+function renderCal(){
+  const cal=document.getElementById('cal');cal.innerHTML='';
+  ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].forEach(d=>{
+    const h=document.createElement('div');h.className='cdh';h.textContent=d;cal.appendChild(h);
+  });
+  const today=new Date(),first=new Date(ayo,amo,1);
+  let sdow=first.getDay();if(sdow===0)sdow=7;
+  const dim=new Date(ayo,amo+1,0).getDate();
+  for(let i=1;i<sdow;i++){const c=document.createElement('div');c.className='cday cd-other';cal.appendChild(c);}
+  for(let d=1;d<=dim;d++){
+    const date=new Date(ayo,amo,d),cell=document.createElement('div');
+    const iT=today.getDate()===d&&today.getMonth()===amo&&today.getFullYear()===ayo;
+    const isDim=date.getDay()===0,isF=isFerie(date);
+    cell.className='cday'+(iT?' cd-today':isDim?' cd-dim':isF?' cd-ferie':'');
+    const dn=document.createElement('div');dn.className='cdn'+(iT?' cdt':'');dn.textContent=d;cell.appendChild(dn);
+    if(isF){const fl=document.createElement('div');fl.style.cssText='font-size:8px;color:var(--p1);font-weight:600;margin-top:1px;';fl.textContent='Férié';cell.appendChild(fl);}
+    if(!isDim&&!isF){
+      const{present,conge,interims}=dayAllShifts(date);
+      const all=[...present,...conge,...interims.map(i=>({n:i.name,type:'int'}))]
+        .filter(x=>!selEmp||(x.emp&&x.emp.id===selEmp)||x.n);
+      all.slice(0,4).forEach(x=>{
+        const ch=document.createElement('div');ch.className='cchip';
+        if(x.n&&!x.emp){ch.classList.add('c-int');ch.textContent=x.n.split(' ')[0];}
+        else if(x.type==='conge'||x.type==='absent'){ch.classList.add('c-cg');ch.textContent=x.emp.fn||.name.split(' ')[0]+' C';}
+        else{const e=x.emp;ch.classList.add(ROLE_CLS[e.role]||'c-alt');ch.textContent=e.fn||.name.split(' ')[0];}
+        cell.appendChild(ch);
+      });
+    }
+    cell.onclick=()=>openModal(d,date);
+    cal.appendChild(cell);
+  }
+  const tot=sdow-1+dim,rem=tot%7===0?0:7-tot%7;
+  for(let i=0;i<rem;i++){const c=document.createElement('div');c.className='cday cd-other';cal.appendChild(c);}
+}
+
+function openModal(day,date){
+  selDay=day;selDate=date;
+  const{present,conge,interims}=dayAllShifts(date);
+  const detail=document.getElementById('day-detail');
+  const isDim=date.getDay()===0,isF=isFerie(date);
+  if(isDim||isF){detail.style.display='none';return;}
+  let html=`<h3>${DF_ADM[date.getDay()]} ${day} ${MO_ADM[date.getMonth()]} ${ayo}</h3><div class="pres-row">`;
+  present.forEach(x=>{html+=`<div class="pres-chip"><div class="av" style="background:${x.emp.bg};color:${x.emp.color};width:22px;height:22px;font-size:9px;">${x.emp.sh}</div>${x.emp.fn||.name.split(' ')[0]} ${x.sh.s}–${x.sh.e}</div>`;});
+  interims.forEach(i=>{html+=`<div class="pres-chip int">${i.name} ${i.s}–${i.e}</div>`;});
+  if(conge.length)html+=`</div><div style="font-size:12px;font-weight:600;color:var(--r1);margin-top:6px;">En congé/absent : ${conge.map(c=>c.emp.name).join(', ')}</div><div class="pres-row">`;
+  else html+='</div>';
+  detail.innerHTML=html;detail.style.display='block';
+  document.getElementById('m-title').textContent=`Modifier — ${day} ${MO_ADM[date.getMonth()]} ${ayo}`;
+  document.getElementById('m-emp').innerHTML=TEAM.map(e=>`<option value="${e.id}">${e.name} — ${e.label}</option>`).join('');
+  document.getElementById('int-name').value='';toggleH();
+  document.getElementById('modal').classList.add('on');
+}
+function closeM(){document.getElementById('modal').classList.remove('on');}
+function toggleH(){document.getElementById('m-hours').style.display=document.getElementById('m-type').value==='work'?'grid':'none';}
+
+function saveShift(){
+  const eid=+document.getElementById('m-emp').value,type=document.getElementById('m-type').value;
+  const s=document.getElementById('m-s').value,e=document.getElementById('m-e').value;
+  const k2=dk(selDate),d2=idb();
+  if(!d2.shifts[k2])d2.shifts[k2]=[];
+  d2.shifts[k2]=d2.shifts[k2].filter(x=>x.empId!==eid);
+  d2.shifts[k2].push({empId:eid,type,s,e});
+  sdb(d2);closeM();renderCal();toast('Créneau enregistré ✓');
+}
+
+function saveInt(){
+  const n=document.getElementById('int-name').value.trim();if(!n){toast('Saisissez le nom','err');return;}
+  const s=document.getElementById('int-s').value,e=document.getElementById('int-e').value;
+  const k2=dk(selDate),d2=idb();
+  if(!d2.interims[k2])d2.interims[k2]=[];
+  d2.interims[k2]=d2.interims[k2].filter(i=>i.name!==n);
+  d2.interims[k2].push({name:n,s,e});
+  sdb(d2);document.getElementById('int-name').value='';renderCal();toast('Intérimaire ajouté ✓');
+}
+
+function renderPt(){
+  const dv=document.getElementById('ptdate').value;if(!dv)return;
+  const[y,m,d]=dv.split('-').map(Number),k2=`${y}-${m-1}-${d}`,date=new Date(y,m-1,d),d2=db();
+  const tbl=document.getElementById('pttbl');
+  tbl.innerHTML='<thead><tr><th>Employé·e</th><th>Arrivée réelle</th><th>Payée</th><th>Départ réel</th><th>Payé</th><th>Durée</th><th>Prévu</th></tr></thead>';
+  const tb=document.createElement('tbody');
+  TEAM.forEach(e=>{
+    const pt=((d2.pt||{})[k2]||{})[e.id]||{};
+    const sh=empShifts(date,e.id);const pl=(sh&&sh.s)?sh:null;
+    const dur=pt.ar&&pt.dr?tdiff(pt.ar,pt.dr):'—';
+    let late='';
+    if(pt.ar&&pl){const[ph,pm]=pl.s.split(':').map(Number),[ah,am2]=pt.ar.split(':').map(Number);if(ah*60+am2>ph*60+pm+30)late=' c-late';}
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><div style="display:flex;align-items:center;gap:8px;"><div class="av" style="background:${e.bg};color:${e.color};width:24px;height:24px;font-size:9px;">${e.sh}</div>${e.name}</div></td>
+      <td style="color:var(--n5);">${pt.araw||'—'}</td><td class="${pt.ar?'c-arr'+late:'c-nil'}">${pt.ar||'—'}</td>
+      <td style="color:var(--n5);">${pt.draw||'—'}</td><td class="${pt.dr?'c-dep':'c-nil'}">${pt.dr||'—'}</td>
+      <td class="c-dur">${dur}</td><td style="color:var(--n5);font-size:11px;">${pl?pl.s+'–'+pl.e:'Repos'}</td>`;
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+}
+
+function exportCsv(){
+  const dv=document.getElementById('ptdate').value;if(!dv)return;
+  const[y,m,d]=dv.split('-').map(Number),k2=`${y}-${m-1}-${d}`,date=new Date(y,m-1,d),d2=db();
+  let csv='Nom,Arrivée réelle,Arrivée payée,Départ réel,Départ payé,Durée,Prévu\n';
+  TEAM.forEach(e=>{const pt=((d2.pt||{})[k2]||{})[e.id]||{};const sh=empShifts(date,e.id);const pl=sh&&sh.s?sh:null;csv+=`${e.name},${pt.araw||''},${pt.ar||''},${pt.draw||''},${pt.dr||''},${pt.ar&&pt.dr?tdiff(pt.ar,pt.dr):''},${pl?pl.s+'-'+pl.e:'Repos'}\n`;});
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`pointage_${dv}.csv`;a.click();
+}
+
+function renderReqs(){
+  const d2=db(),l=document.getElementById('rlist');l.innerHTML='';
+  const TL={conge:'Congé',absent:'Absence',garde:'Garde',horaire:'Horaire'};
+  if(!(d2.requests||[]).length){l.innerHTML='<p class="empty">Aucune demande en cours</p>';return;}
+  [...d2.requests].reverse().forEach(r=>{
+    const e=TEAM.find(t=>t.id===r.empId);if(!e)return;
+    const ac=r.status==='pending'
+      ?`<div style="display:flex;gap:6px;"><button class="rb-ok" onclick="setReq(${r.id},'approved')">✓ Accepter</button><button class="rb-no" onclick="setReq(${r.id},'refused')">✕ Refuser</button></div>`
+      :`<span class="${r.status==='approved'?'badge-ok':'badge-no'}">${r.status==='approved'?'Approuvé':'Refusé'}</span>`;
+    l.innerHTML+=`<div class="rcard">
+      <div class="av" style="background:${e.bg};color:${e.color};width:34px;height:34px;font-size:11px;">${e.sh}</div>
+      <div class="ri">
+        <div class="rn">${e.name} — ${TL[r.type]||r.type}</div>
+        <div class="rd">${r.start}${r.end&&r.end!==r.start?' → '+r.end:''}${r.msg?' · '+r.msg:''}</div>
+      </div>
+      <div>${ac}</div>
+    </div>`;
+  });
+}
+
+function setReq(id,status){
+  const d2=idb(),r=(d2.requests||[]).find(r=>r.id===id);if(!r)return;
+  r.status=status;sdb(d2);renderReqs();renderAdmin();
+  toast(status==='approved'?'Congé approuvé ✓ — planning mis à jour':'Demande refusée');
+}
+
+function saveSam(){
+  const d2=idb();d2.samSem=+document.getElementById('cfg-sam').value;sdb(d2);
+  toast('Paramètre enregistré ✓');renderAdmin();
+}
+
+function exportAll(){
+  const d2=db();
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(d2,null,2)],{type:'application/json'}));
+  a.download='pharmacie-data-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+function importAll(){document.getElementById('import-file').click();}
+function doImport(inp){
+  const file=inp.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{const d2=JSON.parse(e.target.result);sdb(d2);renderAdmin();toast('Données importées ✓');}
+    catch(err){toast('Fichier invalide','err');}
+  };
+  reader.readAsText(file);inp.value='';
+}
+
+function renderPaie(){
+  const mo=+document.getElementById('paie-month').value;
+  const yr=+document.getElementById('paie-year').value;
+  const d2=db();
+  const MO_N=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const dim=new Date(yr,mo+1,0).getDate();
+  const tbl=document.getElementById('paie-tbl');
+  tbl.innerHTML='<thead><tr><th>Employé·e</th><th>Jours travaillés</th><th>Jours congé</th><th>H. pointées</th><th>H. prévues</th><th>Écart</th></tr></thead>';
+  const tb=document.createElement('tbody');
+  let totPt=0,totPrev=0;
+
+  TEAM.forEach(e=>{
+    let minPt=0,jTrav=0,jConge=0,minPrev=0;
+    for(let d=1;d<=dim;d++){
+      const date=new Date(yr,mo,d);
+      if(date.getDay()===0||isFerie(date))continue;
+      const k2=dk(date);
+      // Heures pointées
+      const pt=((d2.pt||{})[k2]||{})[e.id]||{};
+      if(pt.ar&&pt.dr){
+        const[h1,m1]=pt.ar.split(':').map(Number),[h2,m2]=pt.dr.split(':').map(Number);
+        const dur=(h2*60+m2)-(h1*60+m1);
+        if(dur>0){minPt+=dur;jTrav++;}
+      }
+      // Heures prévues & congés
+      const sh=empShifts(date,e.id);
+      if(sh){
+        if(sh.type==='conge'||sh.type==='absent'){jConge++;}
+        else if(sh.s&&sh.e){
+          const[h1,m1]=sh.s.split(':').map(Number),[h2,m2]=sh.e.split(':').map(Number);
+          minPrev+=(h2*60+m2)-(h1*60+m1);
+        }
+      }
+    }
+    const hPt=minPt?Math.floor(minPt/60)+'h'+String(minPt%60).padStart(2,'0'):'—';
+    const hPrev=minPrev?Math.floor(minPrev/60)+'h'+String(minPrev%60).padStart(2,'0'):'—';
+    const ecart=minPt&&minPrev?minPt-minPrev:null;
+    const ecartStr=ecart===null?'—':(ecart>=0?'+':'')+Math.floor(ecart/60)+'h'+String(Math.abs(ecart%60)).padStart(2,'0');
+    const ecartCls=ecart===null?'':(ecart>=0?'c-arr':'c-late');
+    totPt+=minPt;totPrev+=minPrev;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><div style="display:flex;align-items:center;gap:8px;"><div class="av" style="background:${e.bg};color:${e.color};width:24px;height:24px;font-size:9px;">${e.sh}</div><strong>${e.name}</strong></div></td>
+      <td style="text-align:center;">${jTrav}</td>
+      <td style="text-align:center;">${jConge?`<span class="chip c-cg">${jConge}j</span>`:'—'}</td>
+      <td class="c-dur" style="text-align:center;">${hPt}</td>
+      <td style="text-align:center;color:var(--n5);">${hPrev}</td>
+      <td class="${ecartCls}" style="text-align:center;font-weight:600;">${ecartStr}</td>`;
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+
+  const tH=Math.floor(totPt/60)+'h'+String(totPt%60).padStart(2,'0');
+  const tP=Math.floor(totPrev/60)+'h'+String(totPrev%60).padStart(2,'0');
+  document.getElementById('paie-total').innerHTML=`<strong>Total équipe — ${MO_N[mo]} ${yr} :</strong> ${tH} pointées · ${tP} prévues`;
+}
+
+function exportPaieCsv(){
+  const mo=+document.getElementById('paie-month').value;
+  const yr=+document.getElementById('paie-year').value;
+  const d2=db();
+  const MO_N=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const dim=new Date(yr,mo+1,0).getDate();
+  let csv=`Paie ${MO_N[mo]} ${yr}\n`;
+  csv+='Nom,Rôle,Jours travaillés,Jours congé,Heures pointées (min),Heures pointées,Heures prévues,Écart\n';
+  TEAM.forEach(e=>{
+    let minPt=0,jTrav=0,jConge=0,minPrev=0;
+    for(let d=1;d<=dim;d++){
+      const date=new Date(yr,mo,d);
+      if(date.getDay()===0||isFerie(date))continue;
+      const k2=dk(date);
+      const pt=((d2.pt||{})[k2]||{})[e.id]||{};
+      if(pt.ar&&pt.dr){
+        const[h1,m1]=pt.ar.split(':').map(Number),[h2,m2]=pt.dr.split(':').map(Number);
+        const dur=(h2*60+m2)-(h1*60+m1);if(dur>0){minPt+=dur;jTrav++;}
+      }
+      const sh=empShifts(date,e.id);
+      if(sh){
+        if(sh.type==='conge'||sh.type==='absent')jConge++;
+        else if(sh.s&&sh.e){const[h1,m1]=sh.s.split(':').map(Number),[h2,m2]=sh.e.split(':').map(Number);minPrev+=(h2*60+m2)-(h1*60+m1);}
+      }
+    }
+    const hPt=minPt?Math.floor(minPt/60)+'h'+String(minPt%60).padStart(2,'0'):'0h00';
+    const hPrev=minPrev?Math.floor(minPrev/60)+'h'+String(minPrev%60).padStart(2,'0'):'0h00';
+    const ecart=minPt-minPrev;
+    const ecartStr=(ecart>=0?'+':'')+Math.floor(ecart/60)+'h'+String(Math.abs(ecart%60)).padStart(2,'0');
+    csv+=`${e.name},${e.label},${jTrav},${jConge},${minPt},${hPt},${hPrev},${ecartStr}\n`;
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`paie_${MO_N[mo]}_${yr}.csv`;a.click();
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  dbLoad();
+  // Pré-sélectionner le mois en cours
+  const now=new Date();
+  document.getElementById('paie-month').value=now.getMonth();
+  document.getElementById('paie-year').value=now.getFullYear();
+});
+</script>
+</body>
+</html>
