@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Grande Pharmacie de Villeurbanne</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+/* ── LOGIN ───────────────────────────────────────────────────────── */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 54px);padding:20px;}
+.login-card{background:var(--surf);border-radius:var(--r16);padding:32px;width:360px;max-width:100%;border:1px solid var(--bdr);box-shadow:var(--sh4);}
+.login-logo{width:52px;height:52px;background:linear-gradient(135deg,var(--g1),var(--g2));border-radius:var(--r12);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 20px;}
+.login-card h2{font-size:18px;font-weight:700;text-align:center;margin-bottom:4px;}
+.login-card p{font-size:13px;color:var(--n5);text-align:center;margin-bottom:24px;}
+.lerr{color:var(--r2);font-size:12px;margin-top:8px;display:none;font-weight:500;text-align:center;}
+
+/* ── PAGE HEADER ─────────────────────────────────────────────────── */
+.page-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.page-hd h2{font-size:16px;font-weight:700;letter-spacing:-.01em;}
+
+/* ── PLANNING TABLE ──────────────────────────────────────────────── */
+.wtbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r8);}
+.wtbl{width:100%;border-collapse:separate;border-spacing:0;min-width:580px;}
+.wtbl thead tr th{background:var(--g1);color:rgba(255,255,255,.9);padding:10px 8px;font-size:10px;font-weight:600;text-align:center;letter-spacing:.04em;text-transform:uppercase;position:sticky;top:0;z-index:10;}
+.wtbl thead tr th:first-child{text-align:left;padding-left:14px;min-width:130px;background:var(--surf3);color:var(--n5);border-right:1px solid var(--bdr);}
+.th-today{background:var(--g2) !important;}
+.th-off{opacity:.35;}
+.wtbl tbody tr{border-bottom:1px solid var(--bdr);}
+.wtbl tbody tr:last-child{border-bottom:none;}
+.wtbl tbody td{padding:8px;vertical-align:top;background:var(--surf);}
+.wtbl tbody td:first-child{background:var(--surf2);padding:10px 14px;vertical-align:middle;border-right:1px solid var(--bdr);min-width:130px;}
+.td-today{background:#f0fdf4 !important;}
+.td-off{background:var(--surf2) !important;opacity:.4;}
+.emp-n{font-size:12px;font-weight:600;line-height:1.3;white-space:nowrap;}
+.emp-s{font-size:10px;color:var(--n6);margin-top:2px;line-height:1.3;}
+.wtbl tbody tr:hover td{background:#fafcfa;}
+.wtbl tbody tr:hover td:first-child{background:var(--surf3);}
+.wtbl tbody tr:hover .td-today{background:#e8faf0 !important;}
+.wtbl tbody tr.clickable{cursor:pointer;}
+.tbl-chip{font-size:10px;padding:3px 6px;border-radius:4px;font-weight:600;white-space:nowrap;display:block;line-height:1.4;font-family:var(--ffm);margin-bottom:2px;}
+.tbl-chip:last-child{margin-bottom:0;}
+.int-row td{background:var(--ol) !important;}
+.int-row td:first-child{background:var(--ol) !important;}
+.int-row .emp-n{color:var(--o1);}
+.int-row .emp-s{color:var(--o2);}
+.legend{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;background:var(--surf2);border-top:1px solid var(--bdr);border-radius:0 0 var(--r12) var(--r12);}
+
+/* ── DAY DETAIL ──────────────────────────────────────────────────── */
+.day-detail{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r10);padding:14px;margin-bottom:12px;box-shadow:var(--sh2);}
+.day-detail h3{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--n1);}
+.pres-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.pres-chip{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:var(--r8);background:var(--surf2);font-size:12px;font-weight:500;}
+.pres-chip.leave{background:var(--rl);color:var(--r1);}
+.pres-chip.int{background:var(--ol);color:var(--o1);}
+
+/* ── POINTAGES ───────────────────────────────────────────────────── */
+.pt-controls{display:flex;align-items:flex-end;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.pt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px -16px;padding:0 16px 16px;}
+.pt-tbl{width:100%;border-collapse:collapse;min-width:520px;}
+.pt-tbl th{font-size:10px;color:var(--n5);font-weight:700;padding:9px 8px;text-align:left;border-bottom:1.5px solid var(--bdr);background:var(--surf2);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+.pt-tbl td{font-size:12px;padding:9px 8px;border-bottom:1px solid var(--bdr);vertical-align:middle;}
+.pt-tbl tr:last-child td{border-bottom:none;}
+.pt-tbl tr:hover td{background:var(--surf2);}
+.c-arr{color:var(--g1);font-weight:700;font-family:var(--ffm);}
+.c-dep{color:var(--b1);font-weight:700;font-family:var(--ffm);}
+.c-nil{color:var(--n6);font-style:italic;}
+.c-late{color:var(--r2);font-weight:700;font-family:var(--ffm);}
+.c-dur{font-weight:700;font-family:var(--ffm);color:var(--n2);}
+
+/* ── DEMANDES ────────────────────────────────────────────────────── */
+.rcard{background:var(--surf2);border-radius:var(--r10);padding:12px;display:flex;align-items:center;gap:10px;margin-bottom:8px;border:1px solid var(--bdr);}
+.ri{flex:1;min-width:0;}
+.rn{font-size:13px;font-weight:600;}
+.rd{font-size:12px;color:var(--n5);margin-top:2px;}
+.rb-ok{font-size:12px;padding:5px 11px;border-radius:var(--r6);border:1px solid var(--g3);color:var(--g1);background:none;cursor:pointer;font-family:var(--ff);font-weight:600;transition:all .15s;}
+.rb-ok:hover{background:var(--gl);}
+.rb-no{font-size:12px;padding:5px 11px;border-radius:var(--r6);border:1px solid var(--r2);color:var(--r1);background:none;cursor:pointer;font-family:var(--ff);font-weight:600;transition:all .15s;}
+.rb-no:hover{background:var(--rl);}
+
+/* ── CONFIG ──────────────────────────────────────────────────────── */
+.firebase-ok{display:flex;align-items:center;gap:8px;background:var(--gl);border:1px solid var(--gm);border-radius:var(--r8);padding:10px 14px;font-size:12px;color:var(--g0);font-weight:500;margin-bottom:14px;}
+.int-sec{background:var(--ol);border:1px solid #fed7aa;border-radius:var(--r8);padding:13px;margin-bottom:13px;}
+.int-sec .sec-title{color:var(--o1);}
+
+/* ── NOTIF BELL ──────────────────────────────────────────────────── */
+.notif-wrap{position:relative;display:inline-flex;}
+.notif-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.9);border-radius:var(--r8);width:36px;height:36px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;position:relative;}
+.notif-btn:hover{background:rgba(255,255,255,.2);}
+.notif-badge{position:absolute;top:-5px;right:-5px;background:var(--r2);color:#fff;border-radius:50%;width:18px;height:18px;font-size:9px;font-weight:700;display:none;align-items:center;justify-content:center;border:2px solid var(--g0);}
+.notif-badge.on{display:flex;}
+
+/* ── NOTIF PANEL ─────────────────────────────────────────────────── */
+.notif-panel{position:fixed;top:58px;right:10px;width:320px;max-width:calc(100vw - 20px);background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r16);box-shadow:var(--sh4);z-index:400;display:none;overflow:hidden;}
+.notif-panel.on{display:block;}
+.np-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--bdr);background:var(--surf2);}
+.np-hd h4{font-size:13px;font-weight:700;color:var(--n1);}
+.np-mark{font-size:11px;color:var(--g2);font-weight:600;cursor:pointer;background:none;border:none;font-family:var(--ff);}
+.np-list{max-height:360px;overflow-y:auto;}
+.np-empty{padding:24px;text-align:center;color:var(--n6);font-size:13px;}
+.np-item{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-bottom:1px solid var(--bdr);cursor:pointer;transition:background .12s;position:relative;}
+.np-item:last-child{border-bottom:none;}
+.np-item:hover{background:var(--surf2);}
+.np-item.unread{background:#f0fdf4;}
+.np-item.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--g3);border-radius:0 2px 2px 0;}
+.np-ico{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.np-ico.green{background:var(--gl);}
+.np-ico.red{background:var(--rl);}
+.np-ico.amber{background:var(--al);}
+.np-ico.blue{background:var(--bl);}
+.np-body{flex:1;min-width:0;}
+.np-title{font-size:12px;font-weight:600;color:var(--n1);line-height:1.4;}
+.np-sub{font-size:11px;color:var(--n5);margin-top:2px;line-height:1.4;}
+.np-time{font-size:10px;color:var(--n6);margin-top:3px;}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────── */
+@media(max-width:640px){
+  .page{padding:10px;}
+  .page-hd{margin-bottom:10px;gap:6px;}
+  .page-hd h2{font-size:14px;}
+  .hdr-brand .name{max-width:100px;font-size:11px;}
+  .hbtn{padding:5px 8px;font-size:11px;}
+  .notif-btn{width:32px;height:32px;font-size:14px;}
+  .tabs{gap:1px;padding:2px;}
+  .tab{padding:10px 4px;font-size:13px;flex:1;}
+  .tab-txt{display:none;}
+  .nav-lbl{min-width:80px;font-size:11px;}
+  .nav-btn{width:30px;height:30px;}
+  .wtbl{min-width:460px;}
+  .wtbl thead tr th:first-child,.wtbl tbody td:first-child{min-width:90px;padding-left:10px;padding-right:10px;}
+  .pt-controls{flex-direction:column;align-items:stretch;gap:8px;}
+  .pt-controls .fg{margin:0;}
+  .pt-controls .btn{width:100%;justify-content:center;}
+  .pt-scroll{margin:0 -10px -10px;padding:0 10px 10px;}
+  .rcard{flex-wrap:wrap;}
+  .rcard>div:last-child{display:flex;gap:6px;width:100%;}
+  .rb-ok,.rb-no{flex:1;text-align:center;justify-content:center;}
+  .firebase-ok{flex-wrap:wrap;gap:6px;}
+  .modal-bg{align-items:flex-end;padding:0;}
+  .modal{border-radius:var(--r16) var(--r16) 0 0;padding:20px 16px 32px;width:100%;max-width:100%;max-height:88vh;overflow-y:auto;}
+  .f2{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:400px){
+  .hdr-brand .name{max-width:70px;}
+  .tab{font-size:12px;}
+  .wtbl thead tr th:first-child,.wtbl tbody td:first-child{min-width:75px;padding-left:8px;padding-right:8px;}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="cross">✚</div>
+    <span class="name">Grande Pharmacie de Villeurbanne</span>
+  </div>
+  <div class="hdr-right">
+    <span class="hpill" style="display:none;" id="admin-pill">Admin</span>
+    <div class="notif-wrap" id="notif-wrap" style="display:none;">
+      <button class="notif-btn" onclick="toggleNotifPanel()" title="Notifications">
+        🔔
+        <span class="notif-badge" id="notif-badge"></span>
+      </button>
+    </div>
+    <div class="notif-panel" id="notif-panel">
+      <div class="np-hd">
+        <h4>🔔 Notifications</h4>
+        <button class="np-mark" onclick="markAllRead()">Tout marquer lu</button>
+      </div>
+      <div class="np-list" id="np-list"></div>
+    </div>
+    <span class="sync-dot" id="sync-dot" title="Connexion..."></span>
+    <button class="hbtn" id="btn-logout" onclick="logout()" style="display:none;">Déco</button>
+    <a href="index.html" class="hbtn">← Accueil</a>
+  </div>
+</header>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-card fade-up">
+    <div class="login-logo">⚙️</div>
+    <h2>Espace Admin</h2>
+    <p>Accès réservé au responsable</p>
+    <div class="fg">
+      <label>Mot de passe</label>
+      <input type="password" id="pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-grn" style="width:100%;" onclick="doLogin()">Se connecter →</button>
+    <p class="lerr" id="pw-err">Mot de passe incorrect</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
+  <div class="page">
+    <div class="page-hd">
+      <div>
+        <h2>Gestion du planning</h2>
+      </div>
+      <div class="nav-row">
+        <button class="nav-btn" onclick="wk(-1)">‹</button>
+        <span class="nav-lbl" id="mlbl"></span>
+        <button class="nav-btn" onclick="wk(1)">›</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" onclick="setTab('planning',0)">📅 <span class="tab-txt">Planning</span></button>
+      <button class="tab" onclick="setTab('pointage',1)">⏱ <span class="tab-txt">Pointages</span></button>
+      <button class="tab" onclick="setTab('requests',2)">📋 <span class="tab-txt">Demandes</span> <span class="nbadge" id="req-nb" style="display:none;"></span></button>
+      <button class="tab" onclick="setTab('config',3)">⚙️ <span class="tab-txt">Paramètres</span></button>
+    </div>
+
+    <!-- PLANNING -->
+    <div id="t-planning">
+      <div class="day-detail" id="day-detail" style="display:none;"></div>
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-b" style="padding-bottom:0;">
+          <div class="wtbl-wrap">
+            <table class="wtbl" id="wtbl"></table>
+          </div>
+        </div>
+        <div class="legend">
+          <span class="chip c-ph">Pharmacien·ne</span>
+          <span class="chip c-pr">Préparateur·rice</span>
+          <span class="chip c-alt">Alternant·e</span>
+          <span class="chip c-int">Intérimaire</span>
+          <span class="chip c-cg">Congé</span>
+          <span class="chip c-ab">Absent·e</span>
+          <span class="chip c-gd">Garde</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- POINTAGES -->
+    <div id="t-pointage" style="display:none;">
+      <div class="card card-b">
+        <div style="background:var(--gl);border:1px solid var(--gm);border-radius:var(--r8);padding:10px 13px;font-size:12px;color:var(--g0);margin-bottom:14px;font-weight:500;">
+          ⏱ <strong>Arrondi 30 min :</strong> 0–14 min → :00 · 15–44 min → :30 · 45–59 min → :00 h suivante
+        </div>
+        <div class="pt-controls">
+          <div class="fg" style="margin:0;flex:1;">
+            <label>Date</label>
+            <input type="date" id="ptdate" onchange="renderPt()">
+          </div>
+          <button class="btn btn-out btn-sm" onclick="exportCsv()">⬇ Export CSV</button>
+        </div>
+        <div class="pt-scroll">
+          <table class="pt-tbl" id="pttbl"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEMANDES -->
+    <div id="t-requests" style="display:none;">
+      <div class="card card-b">
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px;">Demandes des employé·es</div>
+        <div id="rlist"></div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div id="t-config" style="display:none;">
+      <div class="firebase-ok">
+        <span style="font-size:16px;">🔥</span>
+        <span><strong>Firebase Firestore actif</strong> — données synchronisées en temps réel sur tous les appareils</span>
+      </div>
+      <div class="card card-b">
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px;">⚙ Paramètres</div>
+        <div class="fg">
+          <label>Samedi alternant — semaine de référence</label>
+          <select id="cfg-sam" onchange="saveSam()">
+            <option value="0">Semaines paires = 1er groupe (Bennoui, Tounekti, Badet)</option>
+            <option value="1">Semaines impaires = 1er groupe (Bennoui, Tounekti, Badet)</option>
+          </select>
+        </div>
+        <div class="divider"></div>
+        <div class="sec-title" style="margin-bottom:10px;">Sauvegarder / Restaurer</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-out btn-sm" onclick="exportAll()">⬇ Exporter JSON</button>
+          <button class="btn btn-out btn-sm" onclick="importAll()">⬆ Importer JSON</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none;" onchange="doImport(this)">
+        <p style="font-size:12px;color:var(--n5);margin-top:8px;">💡 Pour migrer les données entre appareils : exportez puis importez.</p>
+        <div style="margin-top:14px;background:var(--surf2);border-radius:var(--r8);padding:10px;font-size:11px;color:var(--n5);font-family:var(--ffm);">
+          Projet : pharmacie-villeurbanne · Firestore · europe-west
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CRÉNEAU -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3 id="m-title">Modifier le créneau</h3>
+      <button class="modal-close" onclick="closeM()">✕</button>
+    </div>
+
+    <!-- Intérimaire -->
+    <div class="int-sec">
+      <div class="sec-title">➕ Ajouter un intérimaire</div>
+      <div class="f2" style="margin-bottom:8px;">
+        <div class="fg" style="margin:0;"><label>Prénom Nom</label><input type="text" id="int-name" placeholder="Jean Dupont"></div>
+        <div class="fg" style="margin:0;"><label>Horaires</label>
+          <div style="display:flex;gap:4px;"><input type="time" id="int-s" value="09:00" style="flex:1;"><input type="time" id="int-e" value="18:00" style="flex:1;"></div>
+        </div>
+      </div>
+      <button class="btn btn-sm" style="background:var(--o2);color:#fff;border-color:var(--o2);" onclick="saveInt()">Ajouter l'intérimaire</button>
+    </div>
+
+    <!-- Employé -->
+    <div class="fg"><label>Employé·e</label><select id="m-emp"></select></div>
+    <div class="fg"><label>Type de créneau</label>
+      <select id="m-type" onchange="toggleH()">
+        <option value="work">Travail</option>
+        <option value="conge">Congé</option>
+        <option value="garde">Garde</option>
+        <option value="absent">Absence</option>
+      </select>
+    </div>
+    <div id="m-hours" class="f2">
+      <div class="fg"><label>Début</label><input type="time" id="m-s" value="08:30"></div>
+      <div class="fg"><label>Fin</label><input type="time" id="m-e" value="19:30"></div>
+    </div>
+    <div class="modal-act">
+      <button class="btn btn-sm" id="btn-del" onclick="deleteShift()" style="background:var(--rl);color:var(--r1);border-color:var(--rm);display:none;">🗑 Supprimer</button>
+      <button class="btn btn-out btn-sm" onclick="closeM()">Annuler</button>
+      <button class="btn btn-grn btn-sm" onclick="saveShift()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+const ADM_PW='Pharma2026';
+let woff=0,selDay=null,selDate=null;
+const MO_ADM=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const DS_ADM=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+const DF_ADM=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+
+function doLogin(){
+  if(document.getElementById('pw').value===ADM_PW){
+    document.getElementById('login-wrap').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('btn-logout').style.display='inline-flex';
+    document.getElementById('notif-wrap').style.display='inline-flex';
+    document.getElementById('pw-err').style.display='none';
+    dbLoad().then(()=>{renderAdmin();renderNotifBadge();});
+    onDbChange(()=>{renderAdmin();renderNotifBadge();});
+  }else{
+    document.getElementById('pw-err').style.display='block';
+    document.getElementById('pw').value='';
+  }
+}
+function logout(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-wrap').style.display='flex';
+  document.getElementById('btn-logout').style.display='none';
+  document.getElementById('notif-wrap').style.display='none';
+  closeNotifPanel();
+  document.getElementById('pw').value='';
+}
+
+function setTab(name,idx){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',i===idx));
+  ['planning','pointage','requests','config'].forEach(n=>{
+    const el=document.getElementById('t-'+n);if(el)el.style.display=n===name?'block':'none';
+  });
+  if(name==='pointage'){const f=document.getElementById('ptdate');if(!f.value)f.value=fi(new Date());renderPt();}
+  if(name==='requests')renderReqs();
+  if(name==='config'){document.getElementById('cfg-sam').value=db().samSem||0;}
+}
+
+function wk(d){woff+=d;renderAdmin();}
+
+function renderAdmin(){
+  const days=weekDays(woff);
+  const f=days[0],l=days[6];
+  const MO3=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  document.getElementById('mlbl').textContent=f.getDate()+' '+MO3[f.getMonth()]+' – '+l.getDate()+' '+MO3[l.getMonth()];
+  renderWeekTable(days);
+  const nb=(db().requests||[]).filter(r=>r.status==='pending').length;
+  const el=document.getElementById('req-nb');
+  el.style.display=nb>0?'inline-flex':'none';el.textContent=nb;
+}
+
+function renderWeekTable(days){
+  const today=new Date();
+  const tbl=document.getElementById('wtbl');
+  const DS=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+  // HEADER
+  let hr='<thead><tr><th style="text-align:left;">Employé·e</th>';
+  days.forEach(d=>{
+    const iT=dk(d)===dk(today),isDim=d.getDay()===0,isF=isFerie(d);
+    const off=isDim||isF;
+    hr+=`<th class="${iT?'th-today':''} ${off?'th-off':''}" style="min-width:60px;white-space:nowrap;">
+      <div style="font-size:9px;opacity:.75;">${DS[d.getDay()]}</div>
+      <div style="font-size:15px;font-weight:700;line-height:1.2;">${d.getDate()}</div>
+      ${isDim?'<div style="font-size:8px;opacity:.6;">Fermé</div>':isF?'<div style="font-size:8px;opacity:.6;">Férié</div>':''}
+    </th>`;
+  });
+  hr+='</tr></thead>';
+
+  // BODY
+  let body='<tbody>';
+  TEAM.forEach(emp=>{
+    body+=`<tr class="clickable">
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="av" style="background:${emp.bg};color:${emp.color};width:26px;height:26px;font-size:9px;">${emp.sh}</div>
+          <div>
+            <div class="emp-n">${emp.name.split(' ')[0]}<span style="font-weight:400;color:var(--n5);"> ${emp.name.split(' ').slice(1).join(' ')}</span></div>
+            <div class="emp-s">${emp.label}</div>
+          </div>
+        </div>
+      </td>`;
+    days.forEach(d=>{
+      const iT=dk(d)===dk(today),isDim=d.getDay()===0,isF=isFerie(d);
+      const off=isDim||isF;
+      if(off){body+=`<td class="${iT?'td-today':''} td-off"></td>`;return;}
+      const sh=empShifts(d,emp.id);
+      const onclick=` onclick="openModal(${d.getDate()},new Date(${d.getFullYear()},${d.getMonth()},${d.getDate()}))"`;
+      body+=`<td class="${iT?'td-today':''}"${onclick}>`;
+      if(sh){
+        if(sh.type==='conge') body+=`<span class="tbl-chip c-cg">Congé</span>`;
+        else if(sh.type==='absent') body+=`<span class="tbl-chip c-ab">Absent</span>`;
+        else if(sh.type==='garde') body+=`<span class="tbl-chip c-gd">Garde</span>`;
+        else body+=`<span class="tbl-chip ${ROLE_CLS[emp.role]||'c-alt'}">${sh.s}–${sh.e}</span>`;
+      }
+      body+='</td>';
+    });
+    body+='</tr>';
+  });
+
+  // Intérimaires
+  const d2=db();const names=new Set();
+  days.forEach(d=>{(d2.interims[dk(d)]||[]).forEach(i=>names.add(i.name));});
+  if(names.size){
+    body+=`<tr><td colspan="8" style="padding:6px 14px;font-size:10px;font-weight:700;color:var(--o1);background:var(--ol);text-transform:uppercase;letter-spacing:.06em;">Intérimaires</td></tr>`;
+    names.forEach(n=>{
+      body+=`<tr class="int-row"><td><div class="emp-n">${n}</div><div class="emp-s">Intérimaire</div></td>`;
+      days.forEach(d=>{
+        const k2=dk(d),iT=dk(d)===dk(today);
+        const s=(d2.interims[k2]||[]).find(i=>i.name===n);
+        const onclick=` onclick="openModal(${d.getDate()},new Date(${d.getFullYear()},${d.getMonth()},${d.getDate()}))"`;
+        body+=`<td class="${iT?'td-today':''}"${onclick}>${s?`<span class="tbl-chip c-int">${s.s}–${s.e}</span>`:''}</td>`;
+      });
+      body+='</tr>';
+    });
+  }
+  body+='</tbody>';
+  tbl.innerHTML=hr+body;
+}
+
+function openModal(day,date){
+  selDay=day;selDate=date;
+  const{present,conge,interims}=dayAllShifts(date);
+  const detail=document.getElementById('day-detail');
+  const isDim=date.getDay()===0,isF=isFerie(date);
+  if(isDim||isF){detail.style.display='none';return;}
+  let html=`<h3>${DF_ADM[date.getDay()]} ${day} ${MO_ADM[date.getMonth()]} ${date.getFullYear()}</h3><div class="pres-row">`;
+  present.forEach(x=>{html+=`<div class="pres-chip"><div class="av" style="background:${x.emp.bg};color:${x.emp.color};width:22px;height:22px;font-size:9px;">${x.emp.sh}</div>${x.emp.name.split(' ')[0]} ${x.sh.s}–${x.sh.e}</div>`;});
+  interims.forEach(i=>{html+=`<div class="pres-chip int">${i.name} ${i.s}–${i.e}</div>`;});
+  if(conge.length)html+=`</div><div style="font-size:12px;font-weight:600;color:var(--r1);margin-top:6px;">En congé/absent : ${conge.map(c=>c.emp.name).join(', ')}</div><div class="pres-row">`;
+  else html+='</div>';
+  detail.innerHTML=html;detail.style.display='block';
+  document.getElementById('m-title').textContent=`Modifier — ${day} ${MO_ADM[date.getMonth()]} ${date.getFullYear()}`;
+  const empSel=document.getElementById('m-emp');
+  empSel.innerHTML=TEAM.map(e=>`<option value="${e.id}">${e.name} — ${e.label}</option>`).join('');
+  document.getElementById('int-name').value='';
+  // Pré-remplir et afficher/cacher le bouton supprimer selon l'employé sélectionné
+  empSel.onchange=refreshDelBtn;
+  refreshDelBtn();
+  toggleH();
+  document.getElementById('modal').classList.add('on');
+}
+
+function refreshDelBtn(){
+  const eid=+document.getElementById('m-emp').value;
+  const k2=dk(selDate),d2=db();
+  const man=(d2.shifts[k2]||[]).find(x=>x.empId===eid);
+  const btn=document.getElementById('btn-del');
+  btn.style.display=man?'inline-flex':'none';
+  // Pré-remplir les champs si shift manuel existant
+  if(man){
+    if(man.type&&man.type!=='work'){
+      document.getElementById('m-type').value=man.type;
+    }else{
+      document.getElementById('m-type').value='work';
+      if(man.s)document.getElementById('m-s').value=man.s;
+      if(man.e)document.getElementById('m-e').value=man.e;
+    }
+    toggleH();
+  }
+}
+
+function closeM(){document.getElementById('modal').classList.remove('on');}
+function toggleH(){document.getElementById('m-hours').style.display=document.getElementById('m-type').value==='work'?'grid':'none';}
+
+function deleteShift(){
+  const eid=+document.getElementById('m-emp').value;
+  const k2=dk(selDate),d2=idb();
+  if(!d2.shifts[k2])return;
+  d2.shifts[k2]=d2.shifts[k2].filter(x=>x.empId!==eid);
+  if(!d2.shifts[k2].length)delete d2.shifts[k2];
+  sdb(d2);closeM();renderAdmin();
+  toast('Créneau manuel supprimé — planning de base restauré');
+}
+
+function saveShift(){
+  const eid=+document.getElementById('m-emp').value,type=document.getElementById('m-type').value;
+  const s=document.getElementById('m-s').value,e=document.getElementById('m-e').value;
+  const k2=dk(selDate),d2=idb();
+  if(!d2.shifts[k2])d2.shifts[k2]=[];
+  d2.shifts[k2]=d2.shifts[k2].filter(x=>x.empId!==eid);
+  const entry=type==='work'?{empId:eid,s,e}:{empId:eid,type,s:'',e:''};
+  d2.shifts[k2].push(entry);
+  sdb(d2);closeM();renderAdmin();toast('Créneau enregistré ✓');
+}
+
+function saveInt(){
+  const n=document.getElementById('int-name').value.trim();if(!n){toast('Saisissez le nom','err');return;}
+  const s=document.getElementById('int-s').value,e=document.getElementById('int-e').value;
+  const k2=dk(selDate),d2=idb();
+  if(!d2.interims[k2])d2.interims[k2]=[];
+  d2.interims[k2]=d2.interims[k2].filter(i=>i.name!==n);
+  d2.interims[k2].push({name:n,s,e});
+  sdb(d2);document.getElementById('int-name').value='';renderAdmin();toast('Intérimaire ajouté ✓');
+}
+
+function renderPt(){
+  const dv=document.getElementById('ptdate').value;if(!dv)return;
+  const[y,m,d]=dv.split('-').map(Number),k2=`${y}-${m-1}-${d}`,date=new Date(y,m-1,d),d2=db();
+  const tbl=document.getElementById('pttbl');
+  tbl.innerHTML='<thead><tr><th>Employé·e</th><th>Arr. réelle</th><th>Payée</th><th>Dép. réel</th><th>Payé</th><th>Durée</th><th>Prévu</th></tr></thead>';
+  const tb=document.createElement('tbody');
+  TEAM.forEach(e=>{
+    const pt=((d2.pt||{})[k2]||{})[e.id]||{};
+    const sh=empShifts(date,e.id);const pl=(sh&&sh.s)?sh:null;
+    const dur=pt.ar&&pt.dr?tdiff(pt.ar,pt.dr):'—';
+    let late='';
+    if(pt.ar&&pl){const[ph,pm]=pl.s.split(':').map(Number),[ah,am2]=pt.ar.split(':').map(Number);if(ah*60+am2>ph*60+pm+30)late=' c-late';}
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><div style="display:flex;align-items:center;gap:8px;"><div class="av" style="background:${e.bg};color:${e.color};width:24px;height:24px;font-size:9px;">${e.sh}</div>${e.name}</div></td>
+      <td style="color:var(--n5);">${pt.araw||'—'}</td><td class="${pt.ar?'c-arr'+late:'c-nil'}">${pt.ar||'—'}</td>
+      <td style="color:var(--n5);">${pt.draw||'—'}</td><td class="${pt.dr?'c-dep':'c-nil'}">${pt.dr||'—'}</td>
+      <td class="c-dur">${dur}</td><td style="color:var(--n5);font-size:11px;">${pl?pl.s+'–'+pl.e:'Repos'}</td>`;
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+}
+
+function exportCsv(){
+  const dv=document.getElementById('ptdate').value;if(!dv)return;
+  const[y,m,d]=dv.split('-').map(Number),k2=`${y}-${m-1}-${d}`,date=new Date(y,m-1,d),d2=db();
+  let csv='Nom,Arrivée réelle,Arrivée payée,Départ réel,Départ payé,Durée,Prévu\n';
+  TEAM.forEach(e=>{const pt=((d2.pt||{})[k2]||{})[e.id]||{};const sh=empShifts(date,e.id);const pl=sh&&sh.s?sh:null;csv+=`${e.name},${pt.araw||''},${pt.ar||''},${pt.draw||''},${pt.dr||''},${pt.ar&&pt.dr?tdiff(pt.ar,pt.dr):''},${pl?pl.s+'-'+pl.e:'Repos'}\n`;});
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`pointage_${dv}.csv`;a.click();
+}
+
+function renderReqs(){
+  const d2=db(),l=document.getElementById('rlist');l.innerHTML='';
+  const TL={conge:'Congé',absent:'Absence',garde:'Garde',horaire:'Horaire'};
+  if(!(d2.requests||[]).length){l.innerHTML='<p class="empty">Aucune demande en cours</p>';return;}
+  [...d2.requests].reverse().forEach(r=>{
+    const e=TEAM.find(t=>t.id===r.empId);if(!e)return;
+    const ac=r.status==='pending'
+      ?`<div style="display:flex;gap:6px;"><button class="rb-ok" onclick="setReq(${r.id},'approved')">✓ Accepter</button><button class="rb-no" onclick="setReq(${r.id},'refused')">✕ Refuser</button></div>`
+      :`<span class="${r.status==='approved'?'badge-ok':'badge-no'}">${r.status==='approved'?'Approuvé':'Refusé'}</span>`;
+    l.innerHTML+=`<div class="rcard">
+      <div class="av" style="background:${e.bg};color:${e.color};width:34px;height:34px;font-size:11px;">${e.sh}</div>
+      <div class="ri">
+        <div class="rn">${e.name} — ${TL[r.type]||r.type}</div>
+        <div class="rd">${r.start}${r.end&&r.end!==r.start?' → '+r.end:''}${r.msg?' · '+r.msg:''}</div>
+      </div>
+      <div>${ac}</div>
+    </div>`;
+  });
+}
+
+function setReq(id,status){
+  const d2=idb(),r=(d2.requests||[]).find(r=>r.id===id);if(!r)return;
+  r.status=status;sdb(d2);renderReqs();renderAdmin();
+  toast(status==='approved'?'Congé approuvé ✓ — planning mis à jour':'Demande refusée');
+}
+
+function saveSam(){
+  const d2=idb();d2.samSem=+document.getElementById('cfg-sam').value;sdb(d2);
+  toast('Paramètre enregistré ✓');renderAdmin();
+}
+
+function exportAll(){
+  const d2=db();
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(d2,null,2)],{type:'application/json'}));
+  a.download='pharmacie-data-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+function importAll(){document.getElementById('import-file').click();}
+function doImport(inp){
+  const file=inp.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{const d2=JSON.parse(e.target.result);sdb(d2);renderAdmin();toast('Données importées ✓');}
+    catch(err){toast('Fichier invalide','err');}
+  };
+  reader.readAsText(file);inp.value='';
+}
+
+document.addEventListener('DOMContentLoaded',()=>{dbLoad();});
+
+// ── NOTIFICATIONS (Firestore-synced) ────────────────────────────────────
+// Les notifications sont dérivées des requests + pointages déjà dans Firestore.
+// Seul l'état lu/non-lu (notifRead) est persisté dans Firestore → sync multi-appareils.
+
+function buildNotifs(){
+  const d2=db();
+  const read=d2.notifRead||{};
+  const notifs=[];
+  const today=new Date(),todayKey=dk(today);
+  const nowH=today.getHours();
+  const todayDow=today.getDay();
+
+  // 1. Demandes en attente
+  (d2.requests||[]).filter(r=>r.status==='pending').forEach(r=>{
+    const emp=TEAM.find(e=>e.id===r.empId);
+    const TL={conge:'Congé',absent:'Absence',garde:'Garde',horaire:'Horaire spécial'};
+    const id='req_'+r.id;
+    notifs.push({
+      id,type:'request',color:'amber',icon:'📋',
+      title:(emp?emp.name:'Employé·e')+' — '+(TL[r.type]||r.type),
+      sub:'Du '+r.start+(r.end&&r.end!==r.start?' au '+r.end:'')+(r.msg?' · '+r.msg:''),
+      ts:r.id,read:!!read[id],action:'requests'
+    });
+  });
+
+  // 2. Pointages manquants aujourd'hui (après 10h)
+  if(todayDow>0&&todayDow<7&&!isFerie(today)&&nowH>=10){
+    const d2pt=(d2.pt||{})[todayKey]||{};
+    TEAM.forEach(emp=>{
+      const sh=empShifts(today,emp.id);
+      if(sh&&sh.s&&sh.type!=='conge'&&sh.type!=='absent'){
+        const[sH]=sh.s.split(':').map(Number);
+        if(nowH>=sH+1&&!d2pt[emp.id]){
+          const id='nopt_'+todayKey+'_'+emp.id;
+          notifs.push({
+            id,type:'missing_pt',color:'red',icon:'⚠️',
+            title:emp.name+' — Pointage manquant',
+            sub:'Prévu '+sh.s+'–'+sh.e+' · Aucune arrivée enregistrée',
+            ts:Date.now(),read:!!read[id],action:'pointage'
+          });
+        }
+      }
+    });
+  }
+
+  // 3. Congés récemment approuvés ou refusés
+  (d2.requests||[]).filter(r=>r.status==='approved'||r.status==='refused').forEach(r=>{
+    const emp=TEAM.find(e=>e.id===r.empId);
+    const TL={conge:'Congé',absent:'Absence',garde:'Garde',horaire:'Horaire spécial'};
+    const id=(r.status==='approved'?'appr_':'refu_')+r.id;
+    const isAppr=r.status==='approved';
+    notifs.push({
+      id,type:r.status,color:isAppr?'green':'red',icon:isAppr?'✅':'❌',
+      title:(isAppr?'Congé approuvé':'Demande refusée')+' — '+(emp?emp.name:''),
+      sub:(TL[r.type]||r.type)+' · '+r.start+(r.end&&r.end!==r.start?' → '+r.end:''),
+      ts:r.id,read:!!read[id],action:'requests'
+    });
+  });
+
+  // Trier : non-lus d'abord, puis par ts décroissant
+  notifs.sort((a,b)=>(!a.read&&b.read)?-1:(a.read&&!b.read)?1:b.ts-a.ts);
+  return notifs.slice(0,40);
+}
+
+function renderNotifBadge(){
+  const notifs=buildNotifs();
+  const unread=notifs.filter(n=>!n.read).length;
+  const badge=document.getElementById('notif-badge');
+  badge.textContent=unread>9?'9+':unread;
+  badge.className='notif-badge'+(unread>0?' on':'');
+}
+
+function renderNotifPanel(){
+  const notifs=buildNotifs();
+  const list=document.getElementById('np-list');
+  if(!notifs.length){list.innerHTML='<div class="np-empty">🎉 Aucune notification</div>';return;}
+  const TS_FMT=(ts)=>{
+    if(ts<1e10)return'';// c'est un rid, pas un timestamp réel
+    const d=new Date(ts),now=new Date(),diff=now-d;
+    if(diff<60000)return'À l\'instant';
+    if(diff<3600000)return Math.floor(diff/60000)+'min';
+    if(diff<86400000)return Math.floor(diff/3600000)+'h';
+    return d.getDate()+'/'+(d.getMonth()+1);
+  };
+  list.innerHTML=notifs.map(n=>`
+    <div class="np-item ${n.read?'':'unread'}" onclick="clickNotif('${n.id}','${n.action||''}')">
+      <div class="np-ico ${n.color||'blue'}">${n.icon||'🔔'}</div>
+      <div class="np-body">
+        <div class="np-title">${n.title}</div>
+        ${n.sub?`<div class="np-sub">${n.sub}</div>`:''}
+        ${TS_FMT(n.ts)?`<div class="np-time">${TS_FMT(n.ts)}</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function clickNotif(id,action){
+  // Marquer comme lu dans Firestore
+  const d2=idb();
+  d2.notifRead[id]=true;
+  sdb(d2);
+  renderNotifBadge();
+  renderNotifPanel();
+  if(action==='requests'){setTab('requests',2);closeNotifPanel();}
+  else if(action==='pointage'){setTab('pointage',1);closeNotifPanel();}
+}
+
+function markAllRead(){
+  const d2=idb();
+  buildNotifs().forEach(n=>{d2.notifRead[n.id]=true;});
+  sdb(d2);
+  renderNotifBadge();
+  renderNotifPanel();
+}
+
+function toggleNotifPanel(){
+  const panel=document.getElementById('notif-panel');
+  const open=panel.classList.toggle('on');
+  if(open){renderNotifPanel();}
+}
+function closeNotifPanel(){document.getElementById('notif-panel').classList.remove('on');}
+
+document.addEventListener('click',e=>{
+  const wrap=document.getElementById('notif-wrap');
+  const panel=document.getElementById('notif-panel');
+  if(wrap&&!wrap.contains(e.target)&&panel&&!panel.contains(e.target)){closeNotifPanel();}
+});
+</script>
+</body>
+</html>
